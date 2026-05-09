@@ -59,11 +59,21 @@ All formats carry the same canonical content (kept in sync) — pick the one(s) 
 
 ## Install
 
-### Option A — Copy just the format you need
+### Option A — `npx skills add` (Claude Code, one-liner)
 
-Copy the file or directory for your agent (see table above) into your project root. That's it.
+Install this skill straight from GitHub into your current project:
 
-### Option B — Clone alongside your project
+```bash
+npx skills add contextberg/contextberg-skills
+```
+
+This drops `.claude/skills/contextberg/SKILL.md` into your project. Restart Claude Code and the skill is live.
+
+### Option B — Copy just the format you need
+
+For Cursor, Cline, Codex, Gemini, OpenCode, Windsurf, Continue, Copilot, or any other agent, copy the relevant file or directory from this repo (see tables above) into your project root.
+
+### Option C — Clone alongside your project
 
 ```bash
 git clone https://github.com/contextberg/contextberg-skills .contextberg-skills
