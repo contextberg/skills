@@ -42,6 +42,20 @@ This repo packages that guidance as a **skill** in every popular agent format, s
 | GitHub (Copilot / Models) | [`.github/skills/contextberg/SKILL.md`](.github/skills/contextberg/SKILL.md) |
 | OpenCode | [`.opencode/skills/contextberg/SKILL.md`](.opencode/skills/contextberg/SKILL.md) |
 
+**Browser AI History SQLite skill** is also provided for agents that need to inspect captured browser AI conversations as local DB/export files instead of MCP tools:
+
+| Agent | Path |
+|---|---|
+| Generic / `.agent` aware | [`.agent/skills/browser-ai-history-db/SKILL.md`](.agent/skills/browser-ai-history-db/SKILL.md) |
+| Generic / `.agents` aware | [`.agents/skills/browser-ai-history-db/SKILL.md`](.agents/skills/browser-ai-history-db/SKILL.md) |
+| Claude Code | [`.claude/skills/browser-ai-history-db/SKILL.md`](.claude/skills/browser-ai-history-db/SKILL.md) |
+| Cline | [`.cline/skills/browser-ai-history-db/SKILL.md`](.cline/skills/browser-ai-history-db/SKILL.md) |
+| Codex | [`.codex/skills/browser-ai-history-db/SKILL.md`](.codex/skills/browser-ai-history-db/SKILL.md) |
+| Cursor | [`.cursor/skills/browser-ai-history-db/SKILL.md`](.cursor/skills/browser-ai-history-db/SKILL.md) |
+| Gemini CLI | [`.gemini/skills/browser-ai-history-db/SKILL.md`](.gemini/skills/browser-ai-history-db/SKILL.md) |
+| GitHub (Copilot / Models) | [`.github/skills/browser-ai-history-db/SKILL.md`](.github/skills/browser-ai-history-db/SKILL.md) |
+| OpenCode | [`.opencode/skills/browser-ai-history-db/SKILL.md`](.opencode/skills/browser-ai-history-db/SKILL.md) |
+
 **2. Native per-tool rule formats** (for tools that read their own rule file shape):
 
 | Agent | Path |
