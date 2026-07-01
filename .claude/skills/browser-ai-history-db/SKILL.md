@@ -102,6 +102,16 @@ session_index(
 
 ## SQL Examples
 
+Start with diagnostics and FTS availability:
+
+```sql
+SELECT
+  (SELECT COUNT(*) FROM conversations) AS conversation_count,
+  (SELECT COUNT(*) FROM messages) AS message_count,
+  (SELECT COUNT(*) FROM session_index) AS indexed_session_count,
+  (SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'message_search') AS fts_table;
+```
+
 Provider counts:
 
 ```sql
@@ -125,11 +135,45 @@ LIMIT 20;
 Search message bodies:
 
 ```sql
+SELECT c.provider, c.title, s.role, substr(s.body, 1, 240) AS snippet
+FROM message_search s
+JOIN conversations c ON c.id = s.conversation_id
+WHERE message_search MATCH '"pricing"'
+ORDER BY datetime(c.updated_at) DESC, CAST(s.order_index AS INTEGER) ASC
+LIMIT 20;
+```
+
+Fallback search when FTS5 is unavailable or a query cannot be represented as FTS:
+
+```sql
 SELECT c.provider, c.title, m.role, substr(m.body, 1, 240) AS snippet
 FROM messages m
 JOIN conversations c ON c.id = m.conversation_id
-WHERE lower(m.body) LIKE lower('%pricing%')
+WHERE m.body LIKE '%pricing%' ESCAPE '\'
+   OR m.markdown LIKE '%pricing%' ESCAPE '\'
 ORDER BY datetime(c.updated_at) DESC, m.order_index ASC
+LIMIT 20;
+```
+
+Search titles, URLs, tags, project labels, and message bodies together:
+
+```sql
+SELECT c.id, c.provider, c.title, c.url, c.updated_at, c.message_count,
+       meta.project, meta.account_label, meta.labels_json
+FROM conversations c
+LEFT JOIN conversation_meta meta ON meta.conversation_id = c.id
+WHERE c.title LIKE '%pricing%' ESCAPE '\'
+   OR c.url LIKE '%pricing%' ESCAPE '\'
+   OR meta.project LIKE '%pricing%' ESCAPE '\'
+   OR meta.account_label LIKE '%pricing%' ESCAPE '\'
+   OR meta.labels_json LIKE '%pricing%' ESCAPE '\'
+   OR EXISTS (
+     SELECT 1
+     FROM message_search s
+     WHERE s.conversation_id = c.id
+       AND s MATCH '"pricing"'
+   )
+ORDER BY datetime(c.updated_at) DESC
 LIMIT 20;
 ```
 
@@ -171,6 +215,14 @@ $dbPath = Join-Path $env:LOCALAPPDATA "ContextBerg\browser-ai-history\browser-ai
 node --input-type=module -e "import { DatabaseSync } from 'node:sqlite'; const db = new DatabaseSync(process.argv[1]); console.log(db.prepare('SELECT provider, COUNT(*) AS count FROM conversations GROUP BY provider ORDER BY provider').all())" $dbPath
 ```
 
+Search with FTS5 from PowerShell:
+
+```powershell
+$dbPath = Join-Path $env:LOCALAPPDATA "ContextBerg\browser-ai-history\browser-ai-history.sqlite"
+$term = '"pricing"'
+node --input-type=module -e "import { DatabaseSync } from 'node:sqlite'; const db = new DatabaseSync(process.argv[1]); const rows = db.prepare('SELECT c.provider, c.title, s.role, substr(s.body, 1, 240) AS snippet FROM message_search s JOIN conversations c ON c.id = s.conversation_id WHERE message_search MATCH ? ORDER BY datetime(c.updated_at) DESC, CAST(s.order_index AS INTEGER) ASC LIMIT 20').all(process.argv[2]); console.log(JSON.stringify(rows, null, 2));" $dbPath $term
+```
+
 For the demo archive:
 
 ```powershell
@@ -198,5 +250,6 @@ Use another port only when `CONTEXTBERG_BROWSER_AI_PORT` was set.
 1. Confirm the archive path first. If `CONTEXTBERG_BROWSER_AI_DIR` is set, it overrides the default.
 2. Check `/health` and `/api/browser-ai-diagnostics` before inspecting raw files.
 3. If `session_index` has rows but `conversations` does not, the provider sidebar was indexed but sessions were not opened/captured yet.
-4. If `messages.markdown` is plain text, inspect `messages.raw_json` and provider extraction logic.
-5. Prefer SQLite for counts/filtering. Prefer Markdown/JSON files for human-readable review and import checks.
+4. Prefer `message_search` FTS5 for broad text search. Fall back to `messages.body LIKE ...` only if FTS5 is missing or the query fails.
+5. If `messages.markdown` is plain text, inspect `messages.raw_json` and provider extraction logic.
+6. Prefer SQLite for counts/filtering. Prefer Markdown/JSON files for human-readable review and import checks.

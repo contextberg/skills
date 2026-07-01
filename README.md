@@ -97,6 +97,14 @@ npx skills add contextberg/skills
 
 This drops `.claude/skills/contextberg/SKILL.md` into your project. Restart Claude Code and the skill is live.
 
+Do not use the old repository name:
+
+```bash
+npx skills add contextberg/contextberg-skills
+```
+
+That command points at `https://github.com/contextberg/contextberg-skills.git`, which is not the public skills repository and will fail with a clone authentication error.
+
 ### Option B — Copy just the format you need
 
 For Cursor, Cline, Codex, Gemini, OpenCode, Windsurf, Continue, Copilot, or any other agent, copy the relevant file or directory from this repo (see tables above) into your project root.
