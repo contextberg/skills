@@ -33,7 +33,7 @@ Important files:
 - `browser-ai-conversations.md`: generated Markdown view for reading/search snippets.
 - `browser-ai-conversations.json`: generated JSON bundle.
 - `browser-ai-conversations.jsonl`: generated JSONL records.
-- `browser-ai-agent-history.json`: AgentHistory-compatible generated bundle.
+- `browser-ai-agent-history.json`: ContextBerg agent-history compatible generated bundle.
 - `conversations\*.json`: raw per-conversation JSON captures.
 
 ## SQLite Schema
@@ -50,12 +50,17 @@ Core columns:
 ```sql
 conversations(
   id TEXT PRIMARY KEY,
+  schema TEXT,
   provider TEXT,
+  source TEXT,
+  capture_method TEXT,
   title TEXT,
   url TEXT,
   conversation_id TEXT,
   captured_at TEXT,
   updated_at TEXT,
+  imported_at TEXT,
+  page_language TEXT,
   message_count INTEGER,
   raw_json TEXT
 );
@@ -67,6 +72,7 @@ messages(
   role TEXT,
   body TEXT,
   markdown TEXT,
+  created_at TEXT,
   raw_json TEXT
 );
 
@@ -182,6 +188,7 @@ http://127.0.0.1:18765/health
 http://127.0.0.1:18765/api/browser-ai-diagnostics
 http://127.0.0.1:18765/api/browser-ai-conversations?compact=1
 http://127.0.0.1:18765/api/browser-ai-sessions
+http://127.0.0.1:18765/api/export?format=contextberg&days=30&mode=per-conversation
 ```
 
 Use another port only when `CONTEXTBERG_BROWSER_AI_PORT` was set.
@@ -193,4 +200,3 @@ Use another port only when `CONTEXTBERG_BROWSER_AI_PORT` was set.
 3. If `session_index` has rows but `conversations` does not, the provider sidebar was indexed but sessions were not opened/captured yet.
 4. If `messages.markdown` is plain text, inspect `messages.raw_json` and provider extraction logic.
 5. Prefer SQLite for counts/filtering. Prefer Markdown/JSON files for human-readable review and import checks.
-

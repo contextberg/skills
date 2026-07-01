@@ -56,6 +56,20 @@ This repo packages that guidance as a **skill** in every popular agent format, s
 | GitHub (Copilot / Models) | [`.github/skills/browser-ai-history-db/SKILL.md`](.github/skills/browser-ai-history-db/SKILL.md) |
 | OpenCode | [`.opencode/skills/browser-ai-history-db/SKILL.md`](.opencode/skills/browser-ai-history-db/SKILL.md) |
 
+**ContextBerg Chrome Dev skill** is provided for agents that need to develop, debug, and validate the ContextBerg Browser AI History Chrome extension and local bridge:
+
+| Agent | Path |
+|---|---|
+| Generic / `.agent` aware | [`.agent/skills/contextberg-chrome-dev/SKILL.md`](.agent/skills/contextberg-chrome-dev/SKILL.md) |
+| Generic / `.agents` aware | [`.agents/skills/contextberg-chrome-dev/SKILL.md`](.agents/skills/contextberg-chrome-dev/SKILL.md) |
+| Claude Code | [`.claude/skills/contextberg-chrome-dev/SKILL.md`](.claude/skills/contextberg-chrome-dev/SKILL.md) |
+| Cline | [`.cline/skills/contextberg-chrome-dev/SKILL.md`](.cline/skills/contextberg-chrome-dev/SKILL.md) |
+| Codex | [`.codex/skills/contextberg-chrome-dev/SKILL.md`](.codex/skills/contextberg-chrome-dev/SKILL.md) |
+| Cursor | [`.cursor/skills/contextberg-chrome-dev/SKILL.md`](.cursor/skills/contextberg-chrome-dev/SKILL.md) |
+| Gemini CLI | [`.gemini/skills/contextberg-chrome-dev/SKILL.md`](.gemini/skills/contextberg-chrome-dev/SKILL.md) |
+| GitHub (Copilot / Models) | [`.github/skills/contextberg-chrome-dev/SKILL.md`](.github/skills/contextberg-chrome-dev/SKILL.md) |
+| OpenCode | [`.opencode/skills/contextberg-chrome-dev/SKILL.md`](.opencode/skills/contextberg-chrome-dev/SKILL.md) |
+
 **2. Native per-tool rule formats** (for tools that read their own rule file shape):
 
 | Agent | Path |
@@ -78,7 +92,7 @@ All formats carry the same canonical content (kept in sync) — pick the one(s) 
 Install this skill straight from GitHub into your current project:
 
 ```bash
-npx skills add contextberg/contextberg-skills
+npx skills add contextberg/skills
 ```
 
 This drops `.claude/skills/contextberg/SKILL.md` into your project. Restart Claude Code and the skill is live.
@@ -90,7 +104,7 @@ For Cursor, Cline, Codex, Gemini, OpenCode, Windsurf, Continue, Copilot, or any 
 ### Option C — Clone alongside your project
 
 ```bash
-git clone https://github.com/contextberg/contextberg-skills .contextberg-skills
+git clone https://github.com/contextberg/skills .contextberg-skills
 # then symlink or copy the formats you want into your project
 ```
 
