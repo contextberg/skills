@@ -169,9 +169,9 @@ WHERE c.title LIKE '%pricing%' ESCAPE '\'
    OR meta.labels_json LIKE '%pricing%' ESCAPE '\'
    OR EXISTS (
      SELECT 1
-     FROM message_search s
-     WHERE s.conversation_id = c.id
-       AND s MATCH '"pricing"'
+     FROM message_search
+     WHERE message_search.conversation_id = c.id
+       AND message_search MATCH '"pricing"'
    )
 ORDER BY datetime(c.updated_at) DESC
 LIMIT 20;
