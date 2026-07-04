@@ -89,13 +89,13 @@ All formats carry the same canonical content (kept in sync) — pick the one(s) 
 
 ### Option A — `npx skills add` (Claude Code, one-liner)
 
-Install this skill straight from GitHub into your current project:
+Install only the Browser AI History SQLite skill into the current agent project:
 
 ```bash
-npx skills add contextberg/skills
+npx -y skills add contextberg/skills --skill contextberg-chrome-dev --yes
 ```
 
-This drops `.claude/skills/contextberg/SKILL.md` into your project. Restart Claude Code and the skill is live.
+This installs `.agents/skills/contextberg-chrome-dev/SKILL.md` into the project, so agents can search and analyze the local ContextBerg Browser AI History SQLite archive.
 
 Do not use the old repository name:
 
