@@ -56,7 +56,7 @@ This repo packages that guidance as a **skill** in every popular agent format, s
 | GitHub (Copilot / Models) | [`.github/skills/browser-ai-history-db/SKILL.md`](.github/skills/browser-ai-history-db/SKILL.md) |
 | OpenCode | [`.opencode/skills/browser-ai-history-db/SKILL.md`](.opencode/skills/browser-ai-history-db/SKILL.md) |
 
-**ContextBerg Chrome Dev skill** is provided for agents that need to develop, debug, and validate the ContextBerg Browser AI History Chrome extension and local bridge:
+**ContextBerg Chrome Dev skill** helps agents search and analyze saved browser AI conversations in the local SQLite archive. It supports read-only retrieval, Japanese substring search alongside FTS5, ordered messages, metadata filters, and older archives without the optional agent views:
 
 | Agent | Path |
 |---|---|
