@@ -32,11 +32,13 @@ On Windows or without sqlite3, use Node 22+ `new DatabaseSync(archivePath, { rea
 SELECT (SELECT COUNT(*) FROM conversations) AS all_conversations,
        (SELECT COUNT(*) FROM messages) AS all_messages;
 SELECT name, type FROM sqlite_master
-WHERE name IN ('agent_archive_status_v1', 'agent_conversations_v1',
+WHERE name IN ('agent_archive_status_v2', 'agent_conversations_v2',
+               'agent_messages_v2', 'agent_sessions_v2',
+               'agent_archive_status_v1', 'agent_conversations_v1',
                'agent_messages_v1', 'agent_sessions_v1', 'message_search');
 ```
 
-If all four agent views exist, use their explicit IDs and quality fields. Read [queries and field meanings](references/archive-queries.md) for SQL. Inspect `agent_archive_status_v1` and provider counts with `is_sample = 0` before summarizing usage. `is_sample = 1` includes explicit demos and legacy sample candidates; explain exclusions. A non-sample capture is not automatically a unique human conversation.
+Choose v2 when all four v2 views exist; otherwise use all four v1 views, or the legacy tables if neither set is complete. Keep a single view version for a query. Read [queries and field meanings](references/archive-queries.md) for SQL. Inspect the selected `agent_archive_status_v2` (or `_v1`) and provider counts with `is_sample = 0` before summarizing usage. `is_sample = 1` includes explicit demos and legacy sample candidates; explain exclusions. A non-sample capture is not automatically a unique human conversation.
 
 For older archives without views, use the legacy examples in that reference. Do not request a database upgrade merely to answer a question. The archive owner can add views separately using the extension source's `npm run archive:upgrade -- --apply` command, which backs up existing files first.
 
@@ -54,8 +56,9 @@ For older archives without views, use the legacy examples in that reference. Do 
 
 - `archive_id` is the local join key. `legacy_local_id` is a stored local value, not a provider session ID. Use derived `provider_session_id` only where known.
 - `source_url` is stored evidence. `canonical_session_url` is a derived matching key; it does not replace the original link or prove account access. Unavailable/unverified links are not reconstructible from hashes or titles.
-- Use `agent_sessions_v1.archive_id` only for `archive_match_status = 'unique'`. Ambiguous/no-match index entries are not missing conversations by themselves. Index observations are not visits, interactions or usage duration.
+- Use `agent_sessions_v2.archive_id` (or the selected v1 equivalent) only for `archive_match_status = 'unique'`. Ambiguous/no-match index entries are not missing conversations by themselves. Index observations are not visits, interactions or usage duration.
 - `first_captured_at`, `archive_updated_at`, `imported_at` and index `last_seen_at` describe capture/storage/observation. They are not the original conversation date. Use `message_created_at` only when `message_time_status = 'recorded'`; missing dates remain unknown. Convert known UTC dates to the user's timezone explicitly.
+- In v2, `capture_scope = 'rendered-messages'` means only rendered turns were saved. Grok and DeepSeek can virtualize earlier turns; neither a valid link nor a saved snapshot proves a full conversation or account export. A NULL scope in older records means unknown.
 - `capture_integrity = 'counts_match'` verifies row counts, not full text. `content_completeness = 'unverified'` is intentional. Do not infer complete coverage from successful saving, valid URLs or a collector version.
 - Exclude demos from usage analysis by default, distinguish user prompts from automated assistant deliveries, and qualify duplicates/reused prompts. Report saved records and observed text, not active users, time spent or total service usage.
 
