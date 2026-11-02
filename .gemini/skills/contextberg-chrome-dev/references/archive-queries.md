@@ -1,15 +1,15 @@
 # Archive views and query recipes
 
-Prefer these standard SQLite views when present. They use no custom functions and reflect new captures immediately. They are not a write API.
+Prefer these standard SQLite views when present. They use no custom functions and reflect new captures immediately. They are not a write API. Examples below use v2. If only all four v1 views are present, replace every `_v2` with `_v1`; the common fields and joins below work in either version. The `capture_scope` field is v2-only. Never install views as part of retrieval.
 
 ## View contract
 
 | View | Identity and purpose |
 | --- | --- |
-| `agent_archive_status_v1` | Total/sample/non-sample counts, latest archive update, count of messages with recorded timestamps, FTS availability |
-| `agent_conversations_v1` | One row per `archive_id`; provider/title, original `source_url`, derived provider session ID/canonical URL, metadata, timestamps and quality |
-| `agent_messages_v1` | One row per `(archive_id, message_index)`; role, body, markdown, `message_text`, original message time and status |
-| `agent_sessions_v1` | One row per `index_id`; observations and canonical-URL-based capture match count/status; `archive_id` is NULL unless exactly one match |
+| `agent_archive_status_v2` | Total/sample/non-sample counts, latest archive update, count of messages with recorded timestamps, FTS availability |
+| `agent_conversations_v2` | One row per `archive_id`; provider/title, original `source_url`, derived provider session ID/canonical URL, metadata, timestamps and quality |
+| `agent_messages_v2` | One row per `(archive_id, message_index)`; role, body, markdown, `message_text`, original message time and status |
+| `agent_sessions_v2` | One row per `index_id`; observations and canonical-URL-based capture match count/status; `archive_id` is NULL unless exactly one match |
 
 Important meanings:
 
@@ -19,16 +19,17 @@ Important meanings:
 - `source_link_status`: `session_url`, `shared_url`, `unavailable` or `unverified`. Syntax recognition is not an account-access check.
 - `record_kind`: `demo` from explicit markers; `sample_candidate` from historical `/demo-` URLs; otherwise `capture`. `is_sample` includes both sample classes. Classification does not change records.
 - `capture_integrity`: `empty`, `count_mismatch`, `counts_match`. None proves semantic completeness; `content_completeness` remains `unverified`.
+- v2 recognizes Grok and DeepSeek session URL aliases and publishes `capture_scope` on conversations. `rendered-messages` is a visible DOM snapshot, not full history; NULL is unknown. v1 can read their stored text but does not recognize their session identity.
 - `message_count` is counted from stored rows, `declared_message_count` is the original stored count. `timestamped_message_count` counts parseable recorded message timestamps.
 - `has_metadata` distinguishes missing metadata from false/empty values. Project and notes remain NULL if absent; tags default to `[]` for querying.
 
 ## Scope and provider coverage
 
 ```sql
-SELECT * FROM agent_archive_status_v1;
+SELECT * FROM agent_archive_status_v2;
 SELECT provider, COUNT(*) AS saved_records, SUM(message_count) AS stored_messages,
        MAX(archive_updated_at) AS latest_archive_update_at
-FROM agent_conversations_v1 WHERE is_sample = 0
+FROM agent_conversations_v2 WHERE is_sample = 0
 GROUP BY provider ORDER BY saved_records DESC;
 ```
 
@@ -41,7 +42,7 @@ WITH hits AS (
   SELECT conversation_id AS archive_id, CAST(order_index AS INTEGER) AS message_index
   FROM message_search WHERE message_search MATCH '"動画"'
   UNION
-  SELECT archive_id, message_index FROM agent_messages_v1
+  SELECT archive_id, message_index FROM agent_messages_v2
   WHERE instr(COALESCE(body, ''), '動画') > 0
      OR instr(COALESCE(markdown, ''), '動画') > 0
 ), matched AS (
@@ -49,9 +50,9 @@ SELECT m.archive_id, m.message_index, c.provider, c.title, m.role,
        substr(m.message_text, 1, 320) AS snippet, c.source_url,
        c.content_completeness, c.archive_updated_at,
        ROW_NUMBER() OVER (PARTITION BY m.archive_id ORDER BY m.message_index) AS hit_in_conversation
-FROM hits h JOIN agent_messages_v1 m
+FROM hits h JOIN agent_messages_v2 m
   ON m.archive_id = h.archive_id AND m.message_index = h.message_index
-JOIN agent_conversations_v1 c ON c.archive_id = m.archive_id
+JOIN agent_conversations_v2 c ON c.archive_id = m.archive_id
 WHERE c.is_sample = 0
 )
 SELECT * FROM matched WHERE hit_in_conversation <= 3
@@ -62,7 +63,7 @@ To find title/notes/project-only matches (even if message search has no hits):
 
 ```sql
 SELECT archive_id, provider, title, source_url, project, notes
-FROM agent_conversations_v1
+FROM agent_conversations_v2
 WHERE is_sample = 0 AND (
   instr(COALESCE(title, ''), '動画') > 0 OR instr(COALESCE(notes, ''), '動画') > 0
   OR instr(COALESCE(project, ''), '動画') > 0 OR instr(labels_json, '動画') > 0
@@ -78,7 +79,7 @@ Bind `:archive_id` to the returned local archive ID. Use `message_index > :last_
 
 ```sql
 SELECT message_index, role, message_text, message_created_at, message_time_status
-FROM agent_messages_v1 WHERE archive_id = :archive_id
+FROM agent_messages_v2 WHERE archive_id = :archive_id
 ORDER BY message_index ASC;
 ```
 
@@ -86,12 +87,12 @@ ORDER BY message_index ASC;
 
 ```sql
 SELECT provider, role, COUNT(*) AS stored_messages
-FROM agent_messages_v1 WHERE is_sample = 0 GROUP BY provider, role;
+FROM agent_messages_v2 WHERE is_sample = 0 GROUP BY provider, role;
 SELECT source_link_status, capture_integrity, COUNT(*) AS saved_records
-FROM agent_conversations_v1 WHERE is_sample = 0
+FROM agent_conversations_v2 WHERE is_sample = 0
 GROUP BY source_link_status, capture_integrity;
 SELECT index_id, provider, title, archive_match_count, archive_match_status
-FROM agent_sessions_v1 WHERE archive_match_status <> 'unique' LIMIT 30;
+FROM agent_sessions_v2 WHERE archive_match_status <> 'unique' LIMIT 30;
 ```
 
 A timeline ordered by `archive_updated_at` is an **archive update timeline**. To present original conversation chronology, first check message timestamp availability. No timestamp means no precise usage date can be inferred.
